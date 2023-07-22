@@ -1,0 +1,19 @@
+
+module baud_rate(reset,clk,b_rtick);
+input clk,reset;
+output b_rtick;
+reg [15:0]counter=0;
+parameter b_rate=651;
+always@(posedge clk)
+begin
+if(reset)begin
+counter<=0;
+end
+else if(b_rtick)
+        counter<=0;
+else
+    counter=counter+1;
+end
+assign b_rtick=(counter==(b_rate-1));
+endmodule
+
