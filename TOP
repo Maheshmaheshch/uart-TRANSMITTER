@@ -1,27 +1,39 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 07/19/2023 10:54:03 AM
+// Design Name: 
+// Module Name: top
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 
 
-
-module top(reset,start,clk,tx,done,tx_data,led);
+module top(reset,start,clk,tx,done,tx_data);
 input clk,start,reset;
 output done;
 input [7:0]tx_data;
-output [7:0]led;
 output tx;
-wire baud_r,out_start;
+wire baud_r;
 baud_rate B(.clk(clk),.reset(reset),.b_rtick(baud_r));
-button B2(.clk(clk),.in(start),.out(out_start));
 
-uart_transmitter
-    
-    trans(
-        .clk_100MHz(clk),               // basys 3 FPGA
-        .reset(reset),                    // reset
-        .tx_start(out_start),                 // begin data transmission (FIFO NOT empty)
-        .sample_tick(baud_r),              // from baud rate generator
-        .data_in(tx_data),      // data word from FIFO
-        .tx_done(done),             // end of transmission
-        .tx(tx)                       // transmitter data line
-    );
- assign led=tx_data;
+transmiter T1(.din(tx_data),
+               .tx_start(start),
+                .clk(clk),
+                .rst(reset),
+                 .br_tick(baud_r),
+                  .tx(tx),
+                   .done(done));
+
 endmodule
