@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 07/18/2023 10:36:47 PM
+// Create Date: 07/19/2023 10:52:22 AM
 // Design Name: 
-// Module Name: transmiter
+// Module Name: transmitter
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -32,88 +32,80 @@ module transmiter(input [7:0]din,
  reg [7:0]data_reg;
  reg [3:0]nbit;
 parameter idle =2'b00,start=2'b01,data=2'b10,stop=2'b11;
- always@(posedge clk)
- begin
-if (rst) begin
-    pstate<=0;
-end
-else
-pstate<=nstate;
-end
-
 
 always@(*)
-begin 
-done<=1'b0;
-case(nstate)
-
-idle : begin
-        tx=1;
-        if(tx_start==1)
-        begin 
-            counter<=0;
-            data_reg<=din;
-             nstate=start;
-        end
-        else
-            nstate=idle;
-       end
-start: begin
-            tx=0;
-            if(br_tick)  begin
-               if (counter==4'd15)
-               begin
-                    counter<=0;
-                    nbit<=0;
-                    nstate=data;
-               end
-             else begin
-                counter=counter+1;
-                nstate=start;
-             end
-         end
+begin
+if(rst) begin
+nstate<=idle;
+counter<=0;
+nbit<=0; 
+data_reg<=0;
 end
-data :
-        begin
-        tx=data_reg[0];
-        if(br_tick)
-        begin
-             if(counter==4'd15)
-             begin
-                counter<=0;
-                data_reg<=data_reg>>1;
-                if(nbit==4'd7)
-                    nstate<=stop;
-                else
-                    nbit<=nbit+1;
-             end
-             else begin
-             counter=counter+1;
-             nstate<=data;  end
-       end
-       else
-        nstate<=data;
-       end   
-           
-stop:begin
-        tx=1;
-        if(br_tick)
-        begin
-            if(counter==4'd15)
-            begin
-                done<=1;
-                nstate<=2'b00;
+else begin 
+pstate=nstate;
+    case(nstate)
+    idle : begin
+            tx=1;
+            done=0;
+            if(tx_start) begin
+            counter=0;
+            data_reg=din;
+            nbit=0;
+            nstate=start; end
+            else
+                nstate=idle;
+           end
+     
+    start: begin
+            tx=0;
+            if(br_tick) begin
+                if(counter==4'd15) begin
+                nstate=data;
+                counter=0;
+                nbit=0;
+                 end
+                else begin
+                counter=counter+1;
+                nstate=start; end
             end
             else
-            begin
-                counter<=counter+1;
+            nstate=start;
             end
-       end
-       else
-            nstate<=stop;
-       end
- default: nstate<=idle;
-endcase
-end
+data : begin
+                tx = data_reg[0];
+                if(br_tick) begin
+                    if(counter ==4'd15) begin
+                        counter = 0;
+                        data_reg= data_reg >> 1;
+                        nbit=nbit+1;
+                        if(nbit >=4'd7)
+                            nstate = stop;
+                       
+                    end
+                    
+                    else begin
+                        counter = counter + 1;
+                        nstate=data; end
+    end        
+    end
+  stop : begin
+            tx=1;
+            if(br_tick) begin
+                if(counter==4'd15) begin
+                    done=1;
+                    nstate=idle; end
+                 else begin
+                        counter=counter+1;
+                        nstate=stop; end
+             end
+             else
+                nstate=stop;
+          end
+   endcase
+   end
+ end                     
+            
 endmodule
+
+
                                       
